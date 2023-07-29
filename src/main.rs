@@ -1,10 +1,11 @@
-use std::thread;
+use std::{thread, f32::consts::E};
 use mouce::{Mouse, common::MouseEvent, MouseActions};
 use std::time::Duration;
 use keyboard_query::{DeviceQuery, DeviceState};
 
-const POLLING_PERIOD:u64 = 10;
+static mut POLLING_NUM:f32 = 0.0;
 static mut CONTINUE_RECORDING: bool = true;
+static mut END:bool = false;
 
 static mut EVENTS_LIST:Vec<MouseEvent> = Vec::<MouseEvent>::new();
 
@@ -32,7 +33,11 @@ fn enable_event_hooks(mouse_manager:&mut Box<dyn MouseActions>){
                     EVENTS_LIST.push(*e);
                 }
             },
-            MouseEvent::Scroll(_direction) => {}
+            MouseEvent::Scroll(_direction) => {
+                if CONTINUE_RECORDING{
+                    EVENTS_LIST.push(*e);
+                }
+            }
         }
     }
     }));
@@ -74,58 +79,91 @@ fn main(){
 
     println!("waiting to replay events");
     hold_on_key(&mut device_state);
-
-    for i in 0..EVENTS_LIST.len(){
-        let event = EVENTS_LIST[i];
-        thread::sleep(Duration::from_millis(10));
-        match event{
-            MouseEvent::RelativeMove(_xpos, _ypos) => {},
-            MouseEvent::AbsoluteMove(xpos, ypos) => {
-                let _  = mouse_manager.move_to(xpos as usize, ypos as usize);
-            },
-            MouseEvent::Release(btn) => {
-                match btn {
-                    mouce::common::MouseButton::Left => {
-                        let _  = mouse_manager.press_button(&mouce::common::MouseButton::Left);
-                    },
-                    mouce::common::MouseButton::Middle => {
-                        let _  = mouse_manager.press_button(&mouce::common::MouseButton::Middle);
-                    },
-                    mouce::common::MouseButton::Right => {
-                        let _  = mouse_manager.press_button(&mouce::common::MouseButton::Right);
-                    },
+    
+    let handle = thread::spawn(|| {
+        let mouse_m: Box<dyn MouseActions> = Mouse::new();
+        while !END {
+            let polling_period = 10.0_f32*E.powf(-POLLING_NUM);
+            for i in 0..EVENTS_LIST.len(){
+                if END{
+                    break;
                 }
-            },
-            MouseEvent::Scroll(_direction) => {
-                // match  direction {
-                //     mouce::common::ScrollDirection::Up => {
-                //         let _  = mouse_manager.scroll_wheel(&mouce::common::ScrollDirection::Up);
-                //     },
-                //     mouce::common::ScrollDirection::Down => {
-                //         let _  = mouse_manager.scroll_wheel(&mouce::common::ScrollDirection::Down);
-                //     },
-                //     mouce::common::ScrollDirection::Right => {
-                //         let _  = mouse_manager.scroll_wheel(&mouce::common::ScrollDirection::Right);
-                //     },
-                //     mouce::common::ScrollDirection::Left => {
-                //         let _  = mouse_manager.scroll_wheel(&mouce::common::ScrollDirection::Left);
-                //     },
-                // }
-            }
-            MouseEvent::Press(btn) => {
-                match btn {
-                    mouce::common::MouseButton::Left => {
-                        let _  = mouse_manager.press_button(&mouce::common::MouseButton::Left);
+                let event = EVENTS_LIST[i];
+                thread::sleep(Duration::from_millis(polling_period as u64));
+    
+                match event{
+                    MouseEvent::RelativeMove(_xpos, _ypos) => {},
+                    MouseEvent::AbsoluteMove(xpos, ypos) => {
+                        let _  = mouse_m.move_to(xpos as usize, ypos as usize);
                     },
-                    mouce::common::MouseButton::Middle => {
-                        let _  = mouse_manager.press_button(&mouce::common::MouseButton::Middle);
+                    MouseEvent::Release(btn) => {
+                        match btn {
+                            mouce::common::MouseButton::Left => {
+                                let _  = mouse_m.press_button(&mouce::common::MouseButton::Left);
+                            },
+                            mouce::common::MouseButton::Middle => {
+                                let _  = mouse_m.press_button(&mouce::common::MouseButton::Middle);
+                            },
+                            mouce::common::MouseButton::Right => {
+                                let _  = mouse_m.press_button(&mouce::common::MouseButton::Right);
+                            },
+                        }
                     },
-                    mouce::common::MouseButton::Right => {
-                        let _  = mouse_manager.press_button(&mouce::common::MouseButton::Right);
-                    },
+                    MouseEvent::Scroll(direction) => {
+                        match direction {
+                            mouce::common::ScrollDirection::Up => {
+                                let _  = mouse_m.scroll_wheel(&mouce::common::ScrollDirection::Up);
+                            },
+                            mouce::common::ScrollDirection::Down => {
+                                let _  = mouse_m.scroll_wheel(&mouce::common::ScrollDirection::Down);
+                            },
+                            mouce::common::ScrollDirection::Right => {
+                                let _  = mouse_m.scroll_wheel(&mouce::common::ScrollDirection::Right);
+                            },
+                            mouce::common::ScrollDirection::Left => {
+                                let _  = mouse_m.scroll_wheel(&mouce::common::ScrollDirection::Left);
+                            },
+                        }
+                    }
+                    MouseEvent::Press(btn) => {
+                        match btn {
+                            mouce::common::MouseButton::Left => {
+                                let _  = mouse_m.press_button(&mouce::common::MouseButton::Left);
+                            },
+                            mouce::common::MouseButton::Middle => {
+                                let _  = mouse_m.press_button(&mouce::common::MouseButton::Middle);
+                            },
+                            mouce::common::MouseButton::Right => {
+                                let _  = mouse_m.press_button(&mouce::common::MouseButton::Right);
+                            },
+                        }
+                    }
                 }
             }
         }
+    });
+
+    let mut keys = Vec::<u16>::new();
+    loop{
+        keys= device_state.get_keys();
+        if keys.contains(&56_u16){
+            END = true;
+            break;
+        }
+        if keys.contains(&124_u16){
+            POLLING_NUM+=0.01;
+        }
+        if keys.contains(&123_u16){
+            POLLING_NUM-=0.01;
+        }
+        print!("\rpolling num={:.8}", POLLING_NUM);
+        thread::sleep(Duration::from_millis(20));
     }
+
+    handle.join().unwrap();
+
+    println!("program ended");
+
+    
 }
 }
