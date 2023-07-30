@@ -1,16 +1,12 @@
 [package]
-name = "myrust"
-version = "0.1.0"
+name = "mouse_keyboard_input_automator"
+version = "0.2.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-enigo = "0.1.2"
-keyboard_query = "0.1.0"
-mouce = "0.2.43"
 rdev = "0.5.3"
-time = "0.3.23"
 
 
 
