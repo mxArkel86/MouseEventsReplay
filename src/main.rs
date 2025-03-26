@@ -24,7 +24,7 @@ fn getInput(prompt:&str)->String{
     let mut line = String::new();
     println!("{}",prompt);
     let _=stdout().flush();
-    let b1 = std::io::stdin().read_line(&mut line).unwrap();
+    let _ = std::io::stdin().read_line(&mut line).unwrap();
     
     return line.trim().to_string();
 }
@@ -38,39 +38,27 @@ fn strToFloat(str:String)->f32{
 fn main() {
     let mut repetitions: i32 = 999999;
     let mut s_betw_rep:f32 = 0.0;
-    let mut s_rand_max:f32 = 0.0;
 
     unsafe {
         println!("starting program");
         let _handle = initialize_input_listener();
-        
-        let line = getInput("how many time should this be run? (0 = infinity)");
+        println!("press right shift to perform basic actions. press right arrow or left arrow during playback to change the speed.");
+        let line = getInput("how many time should this be run? (default = infinity)");
         if line!="0"{
         repetitions = strToInt(line);
         }
         
-        println!("repetitions={}", repetitions);
-
         let line = getInput("seconds between repetitions?");
         if line!="0"{
             s_betw_rep = strToFloat(line);
         }
 
-        println!("seconds between actions={}", s_betw_rep);
-
-        let line = getInput("max seconds between actions? (randomized)");
-        if line!="0"{
-            s_rand_max = strToFloat(line);
-        }
-
-        println!("max seconds={}", s_rand_max);
-
         //hold
-        println!("waiting to begin recording...");
+        println!("waiting to begin recording... (press right shift)");
 
         hold_on_key();
 
-        println!("recording started");
+        println!("recording started (press right shift to end)");
 
         //begin recording mouse inputs
         record();
@@ -79,12 +67,13 @@ fn main() {
         //wait for shift key to be pressed again
         endrecord();
 
-        println!("actions={}", EVENTS_LIST.len());
+        println!("# of actions={}", EVENTS_LIST.len());
 
         println!("waiting to replay events");
         hold_on_key();
+        println!("press right shift to end");
 
-        begin_playback(repetitions, s_betw_rep, s_rand_max);
+        let handle = begin_playback(repetitions, s_betw_rep);
 
         loop {
             if RIGHT_SHIFT_PRESSED {
@@ -100,7 +89,7 @@ fn main() {
             thread::sleep(Duration::from_millis(10));
         }
 
-        // handle.join().unwrap();
+        handle.join().unwrap();
         print!("\n");
         println!("program ended");
     }

@@ -1,8 +1,7 @@
 use std::{ thread::{ self, JoinHandle }, time::Duration, f32::consts::E, io::{stdout, Write} };
-use rand::prelude::*;
 use crate::util::{ EVENTS_LIST, POLLING_NUM, END, is_letter, LETTER_PERIOD_MULT };
 
-pub fn begin_playback(repetitions:i32, s_betw_rep:f32, s_rand_max:f32) -> JoinHandle<()> {
+pub fn begin_playback(repetitions:i32, s_betw_rep:f32) -> JoinHandle<()> {
     unsafe {
         let handle = thread::spawn(move || {
             
@@ -13,9 +12,7 @@ pub fn begin_playback(repetitions:i32, s_betw_rep:f32, s_rand_max:f32) -> JoinHa
             while !END && n<repetitions {
                 n+=1;
                 
-                let mut rng = rand::thread_rng();
-                let r1: f32 = rng.gen();
-                let secs = s_betw_rep+s_rand_max*r1;
+                let secs = s_betw_rep;
                 print!("\rWaiting {} seconds", secs);
                 let _=stdout().flush();
                 thread::sleep(Duration::from_secs_f32(secs));

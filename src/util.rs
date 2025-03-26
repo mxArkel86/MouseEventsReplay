@@ -4,7 +4,7 @@ use std::{ time::Duration, thread };
 pub static mut EVENTS_LIST: Vec<EventType> = Vec::<EventType>::new();
 pub static mut END: bool = false;
 pub static mut POLLING_NUM: f32 = 0.0;
-pub const POLLING_CHNG: f32 = 0.001;
+pub const POLLING_CHNG: f32 = 0.004;
 pub const LETTER_PERIOD_MULT: f32 = 4.0;
 pub static mut RIGHT_SHIFT_PRESSED: bool = false;
 pub const KEY_DOWN_POLLING: Key = Key::LeftArrow;
