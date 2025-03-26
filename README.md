@@ -1,4 +1,4 @@
-# MouseEventsReplay
+# InputEventsReplay
 
 This is a simple rust cli application that records your keyboard and mouse inputs and then replace them back. This is useful when you have a repetitive task on your computer that can be solved with the same action over and over.
 
